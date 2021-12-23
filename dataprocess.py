@@ -282,7 +282,7 @@ def save_wrong_classifications(wrong_classification, classifier):
 
     wrong_classification = wrong_classification.sort_values(by = ['flake_id'])
     path = 'Data/wrong_classifications'
-    path = os.path.join(path, classifier+'.pkl')
+    path = os.path.join(path, classifier+'_wrong_classifications.pkl')
     wrong_classification.to_pickle(path)
 
 

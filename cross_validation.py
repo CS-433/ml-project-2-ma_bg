@@ -84,17 +84,19 @@ def all_models_train_and_test():
         [dict]: Return train and test error dictionnaries
     """
 
-    
+    # Set the seed and the k-fold size
     k_fold = 5
     seed = 0
 
+    # Load and process the data set for riming degree classification
     data_set, classes = load_data_sets(classifier = 'riming')
     X_rim, y_rim = processing(data_set, classes, 'riming')
 
+    # Load and process the data set for hydrometeor classification
     data_set, classes = load_data_sets(classifier = 'hydro')
     X_hyd, y_hyd = processing(data_set, classes, 'hydro')
 
-
+    # Set the data in a dictionnaries
     X_dict = {
         'riming': X_rim,
         'hydro': X_hyd
@@ -104,13 +106,18 @@ def all_models_train_and_test():
         'hydro': y_hyd
         }
 
-
+    # Get the list of the model names
     models_name = get_list_models()
+
+    # Set the feature selection method
     method = 'lassoCV'
+
+    # Set a stratified cut
     skf = StratifiedKFold(n_splits = k_fold, 
                             shuffle = True, 
                             random_state = seed)
 
+    # Initialization of train error dictionnary
     train = {
             'riming': {
                         'MLP': np.array([]), 
@@ -128,6 +135,7 @@ def all_models_train_and_test():
             }
     }
 
+    # Initialization of test error dictionnary
     test = {
             'riming': {
                         'MLP': np.array([]), 
@@ -145,43 +153,58 @@ def all_models_train_and_test():
             }
     }
 
+    # Loop over all the classifiers
     for classifier_ in ['riming', 'hydro']:
 
+        # Loop over all the mdoels
         for model_name in models_name:
 
+            # Set the name of the pre-trained model
             name = classifier_ + '_' + str(model_name)
 
+            # Set the sets X and y (depending on the current classifier)
             X = X_dict[classifier_]
             y = y_dict[classifier_]
             
+            # Loop over all the possible cut in tran and test set of X and y
             for train_idx, test_idx in skf.split(X, y):
+
+                # Get the best model
                 model = best_model(name)
 
+                # Set the train and test sets
                 X_train = X.iloc[train_idx]
                 X_test = X.iloc[test_idx]
                 y_train = y.iloc[train_idx]
                 y_test = y.iloc[test_idx]
 
+                # Feature selection method
                 model_feat_selec = get_model_features_selection(X_train, 
                                                                 y_train, 
                                                                 method, 
                                                                 k_fold, 
                                                                 seed = seed)
 
+                # Reduce the dimension of the train and the test by feature selection
                 X_train_reduce = feature_transform(model_feat_selec, X_train, method)
                 X_test_reduce = feature_transform(model_feat_selec, X_test, method)
 
+                # Train the model
                 model.fit(X_train_reduce, y_train)
 
+                # Get prediction on train and test 
                 y_train_pred = model.predict(X_train_reduce)
                 y_test_pred = model.predict(X_test_reduce)
 
+                # Get the score of train and test
                 score_train = accuracy_score(y_train, y_train_pred)
                 score_test = accuracy_score(y_test, y_test_pred)
 
+                # Update the dictionnaries
                 train[classifier_][model_name] = np.append(train[classifier_][model_name], score_train)
                 test[classifier_][model_name] = np.append(test[classifier_][model_name], score_test)
         
+    # Display the results at the end 
     for classifier_ in ['riming', 'hydro']:
 
         for model_name in models_name:
@@ -192,4 +215,7 @@ def all_models_train_and_test():
             print(classifier_+'_'+model_name, ' test mean = ', np.mean(test[classifier_][model_name]))
             print(classifier_+'_'+model_name, ' test std = ', np.std(test[classifier_][model_name]))
 
+            print('\n')
+
+    # Return the accuracies
     return train, test

@@ -175,7 +175,7 @@ def get_classes(classifier):
 
             # Download the file from Google drive if it doesn't exists
             if not os.path.isfile(path_cam):
-                download(path, classifier)
+                download(path_cam, classifier)
             
             # Read the pickle file
             classes_cam = pd.read_pickle(path_cam).reset_index(drop = True)
@@ -197,7 +197,7 @@ def get_classes(classifier):
 
             # Download the file from Google drive if it doesn't exists
             if not os.path.isfile(path_cam):
-                download(path, classifier)
+                download(path_cam, classifier)
             
             # Read the pickle file
             classes_cam = pd.read_pickle(path_cam).reset_index(drop = True)
@@ -247,7 +247,7 @@ def get_MASCDB_data():
 
         # Download the file from Google drive if it doesn't exists
         if not os.path.isfile(path_cam):
-            download(path, 'MASCDB')
+            download(path_cam, 'MASCDB')
         
         # Read the parquet file
         data_set_cam = pd.read_parquet(path_cam).reset_index(drop = True)
